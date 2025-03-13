@@ -21,6 +21,7 @@ jobs:
       - name: Check if version number is valid
         id: check_version
         run: |
+          git fetch --tags
           echo $(git tag | tail -1 | sed 's/v//')
           # # Check if version number is semantically correct
           # if [[ ! $VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
