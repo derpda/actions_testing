@@ -60,6 +60,8 @@ jobs:
                   echo "Cannot rebase dev onto $GITHUB_REF. Please rebase dev onto $GITHUB_REF and push the changes"
                   exit 1
               fi
+              # Return to the original branch
               git checkout -
+              git branch -D dev
           fi
         shell: bash
