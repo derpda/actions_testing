@@ -33,8 +33,7 @@ jobs:
             exit 1
           fi
           # Check if version number is newer than the latest tag (strip 'v' from tag)
-          echo $(git tag --list 'v*' | tail -1 | sed 's/v//')
-          LATEST_TAG=$(git describe --tags --abbrev=0 | sed 's/v//')
+          LATEST_TAG=$(git tag --list 'v*' | tail -1 | sed 's/v//')
           if [[ $VERSION < $LATEST_TAG ]]; then
               echo "Version number is older than the latest tag"
               exit 1
