@@ -22,50 +22,51 @@ jobs:
         id: check_version
         run: |
           git fetch --tags
-          echo $(git tag | tail -1 | sed 's/v//')
-          # # Check if version number is semantically correct
-          # if [[ ! $VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-          #   echo "Invalid version number: $VERSION"
-          #   exit 1
-          # fi
-          # # Check if version number does not exist
-          # if git rev-parse "refs/tags/v$VERSION" >/dev/null 2>&1; then
-          #   echo "Tag v$VERSION already exists"
-          #   exit 1
-          # fi
-          # # Check if version number is newer than the latest tag (strip 'v' from tag)
-          # LATEST_TAG=$(git describe --tags --abbrev=0 | sed 's/v//')
-          # if [[ $VERSION < $LATEST_TAG ]]; then
-          #     echo "Version number is older than the latest tag"
-          #     exit 1
-          # fi
-          # echo "VERSION=$VERSION" >> $GITHUB_ENV
+          # Check if version number is semantically correct
+          if [[ ! $VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Invalid version number: $VERSION"
+            exit 1
+          fi
+          # Check if version number does not exist
+          if git rev-parse "refs/tags/v$VERSION" >/dev/null 2>&1; then
+            echo "Tag v$VERSION already exists"
+            exit 1
+          fi
+          # Check if version number is newer than the latest tag (strip 'v' from tag)
+          echo $(git tag --list 'v*' | tail -1 | sed 's/v//')
+          LATEST_TAG=$(git describe --tags --abbrev=0 | sed 's/v//')
+          if [[ $VERSION < $LATEST_TAG ]]; then
+              echo "Version number is older than the latest tag"
+              exit 1
+          fi
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
         shell: bash
         env:
           VERSION: ${{ inputs.version }}
-      # - name: Check release branch status
-      #   id: check_branch
-      #   run: |
-      #     # Assert that the release branch is not master (we merge to master from release branches)
-      #     if [[ $GITHUB_REF == refs/heads/master ]]; then
-      #         echo "Cannot release from master branch"
-      #         exit 1
-      #     fi
-      #     # Assert that master is an ancestor of the release branch
-      #     if ! git merge-base --is-ancestor master $GITHUB_REF; then
-      #         echo "Release branch is not a parent of master"
-      #         exit 1
-      #     fi
-      #     # If the release branch is not dev, create a new local branch from origin/dev and check that
-      #     # it can be fast-forward rebased onto $GITHUB_REF
-      #     if [[ $GITHUB_REF != refs/heads/dev ]]; then
-      #         git checkout -b dev origin/dev
-      #         if ! git rebase --onto $GITHUB_REF dev; then
-      #             echo "Cannot rebase dev onto $GITHUB_REF. Please rebase dev onto $GITHUB_REF and push the changes"
-      #             exit 1
-      #         fi
-      #         # Return to the original branch
-      #         git checkout -
-      #         git branch -D dev
-      #     fi
-      #   shell: bash
+      - name: Check release branch status
+        id: check_branch
+        run: |
+          echo "VERSION=$VERSION"
+          # # Assert that the release branch is not master (we merge to master from release branches)
+          # if [[ $GITHUB_REF == refs/heads/master ]]; then
+          #     echo "Cannot release from master branch"
+          #     exit 1
+          # fi
+          # # Assert that master is an ancestor of the release branch
+          # if ! git merge-base --is-ancestor master $GITHUB_REF; then
+          #     echo "Release branch is not a parent of master"
+          #     exit 1
+          # fi
+          # # If the release branch is not dev, create a new local branch from origin/dev and check that
+          # # it can be fast-forward rebased onto $GITHUB_REF
+          # if [[ $GITHUB_REF != refs/heads/dev ]]; then
+          #     git checkout -b dev origin/dev
+          #     if ! git rebase --onto $GITHUB_REF dev; then
+          #         echo "Cannot rebase dev onto $GITHUB_REF. Please rebase dev onto $GITHUB_REF and push the changes"
+          #         exit 1
+          #     fi
+          #     # Return to the original branch
+          #     git checkout -
+          #     git branch -D dev
+          # fi
+        shell: bash
