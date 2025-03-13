@@ -52,7 +52,7 @@ jobs:
           fi
           git branch -a
           # Assert that master is an ancestor of the release branch
-          if ! git merge-base --is-ancestor master $GITHUB_REF; then
+          if ! git merge-base --is-ancestor origin/master $GITHUB_REF; then
               echo "Release branch is not a parent of master"
               exit 1
           fi
