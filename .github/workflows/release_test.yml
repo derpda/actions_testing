@@ -70,7 +70,7 @@ jobs:
               git branch -D dev
           fi
           echo "IS_DEV=$([[ $GITHUB_REF == refs/heads/dev ]])" >> $GITHUB_ENV
-          echo $IS_DEV
+          echo $VERSION $IS_DEV
         shell: bash
   SlackNotification:
     runs-on: ubuntu-latest
