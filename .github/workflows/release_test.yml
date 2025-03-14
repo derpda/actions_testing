@@ -85,6 +85,6 @@ jobs:
           SLACK_USERNAME: Edge OCR SDK Release
           SLACK_ICON: https://edge-ocr.com/favicon.ico
           SLACK_MESSAGE_ON_SUCCESS: "New release v${{ inputs.version }} is ready to be published"
-          SLACK_MESSAGE_ON_FAILURE: "@channel Release v${{ inputs.version }} failed"
+          SLACK_MESSAGE_ON_FAILURE: "Release v${{ inputs.version }} failed"
           SLACK_COLOR: ${{ needs.Initial-Checks.result }}
-          MSG_MINIMAL: actions url, commit
+          MSG_MINIMAL: actions url,commit
