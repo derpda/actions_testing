@@ -38,7 +38,6 @@ jobs:
             echo "Version number is older than the latest tag"
             exit 1
           fi
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
         shell: bash
         env:
           VERSION: ${{ inputs.version }}
@@ -71,8 +70,7 @@ jobs:
             git checkout -
             git branch -D dev
           fi
-          echo "IS_DEV=$IS_DEV" >> $GITHUB_ENV
-          echo $VERSION $IS_DEV
+          echo "IS_DEV=$IS_DEV" >> $GITHUB_OUTPUT
         shell: bash
   SlackNotification:
     runs-on: ubuntu-latest
@@ -88,7 +86,11 @@ jobs:
           SLACK_USERNAME: Edge OCR SDK Release
           SLACK_ICON: https://edge-ocr.com/favicon.ico
           SLACK_TITLE: "Edge OCR SDK Release"
-          SLACK_MESSAGE_ON_SUCCESS: "New release v${{ inputs.version }} was published. ${{ env.IS_DEV && 'Rebase dev brach @Peter' }}"
-          SLACK_MESSAGE_ON_FAILURE: "@channel Release v${{ inputs.version }} failed"
+          SLACK_MESSAGE_ON_SUCCESS: |
+            "New release v$VERSION was published."
+            "${{ needs.Initial-Checks.outputs.IS_DEV && 'Rebase dev brach @Peter' }}"
+          SLACK_MESSAGE_ON_FAILURE: "@channel Release v$VERSION failed"
           SLACK_COLOR: ${{ needs.Initial-Checks.result }}
           MSG_MINIMAL: actions url
+        env:
+          VERSION: ${{ inputs.version }}
