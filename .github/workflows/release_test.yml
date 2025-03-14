@@ -70,6 +70,7 @@ jobs:
               git branch -D dev
           fi
           echo "IS_DEV=$([[ $GITHUB_REF == refs/heads/dev ]])" >> $GITHUB_ENV
+          echo $IS_DEV
         shell: bash
   SlackNotification:
     runs-on: ubuntu-latest
@@ -84,7 +85,8 @@ jobs:
           SLACK_CHANNEL: pj-edge-ocr
           SLACK_USERNAME: Edge OCR SDK Release
           SLACK_ICON: https://edge-ocr.com/favicon.ico
-          SLACK_MESSAGE_ON_SUCCESS: "New release v${{ inputs.version }} is ready to be published. ${{ needs.Initial-Checks.outputs.IS_DEV && 'Rebase dev brach @Peter' }}"
+          SLACK_TITLE: "Edge OCR SDK Release"
+          SLACK_MESSAGE_ON_SUCCESS: "New release v${{ inputs.version }} was published. ${{ needs.Initial-Checks.outputs.IS_DEV && 'Rebase dev brach @Peter' }}"
           SLACK_MESSAGE_ON_FAILURE: "@channel Release v${{ inputs.version }} failed"
           SLACK_COLOR: ${{ needs.Initial-Checks.result }}
           MSG_MINIMAL: actions url
