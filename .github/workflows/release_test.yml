@@ -87,10 +87,8 @@ jobs:
           SLACK_ICON: https://edge-ocr.com/favicon.ico
           SLACK_TITLE: "Edge OCR SDK Release"
           SLACK_MESSAGE_ON_SUCCESS: |
-            "New release v$VERSION was published."
+            "New release v${{ inputs.version }} was published."
             "${{ needs.Initial-Checks.outputs.IS_DEV && 'Rebase dev brach @Peter' }}"
-          SLACK_MESSAGE_ON_FAILURE: "@channel Release v$VERSION failed"
+          SLACK_MESSAGE_ON_FAILURE: "@channel Release v${{ inputs.version }} failed"
           SLACK_COLOR: ${{ needs.Initial-Checks.result }}
           MSG_MINIMAL: actions url
-        env:
-          VERSION: ${{ inputs.version }}
