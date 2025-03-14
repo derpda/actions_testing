@@ -79,9 +79,11 @@ jobs:
       - name: Notify on Slack
         uses: rtCamp/action-slack-notify@v2
         env:
+          SLACK_LINK_NAMES: true
           SLACK_WEBHOOK: ${{ secrets.EDGEOCR_SLACK_WEBHOOK }}
           SLACK_CHANNEL: pj-edge-ocr
           SLACK_USERNAME: Edge OCR SDK Release
           SLACK_ICON: https://edge-ocr.com/favicon.ico
-          SLACK_MESSAGE: "New release v${{ inputs.version }} is ready to be published"
+          SLACK_MESSAGE_ON_SUCCESS: "New release v${{ inputs.version }} is ready to be published"
+          SLACK_MESSAGE_ON_FAILURE: "@channel Release v${{ inputs.version }} failed"
           SLACK_COLOR: ${{ needs.Initial-Checks.result }}
