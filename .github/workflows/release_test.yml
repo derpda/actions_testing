@@ -18,7 +18,7 @@ jobs:
         if: ${{ !env.ACT }}
         run: |
           git fetch --unshallow
-          latest_tag=$(git describe --tags --abbvrev=0)
+          latest_tag=$(git describe --tags --abbrev=0)
           n_since_tag=$(git rev-list --count $latest_tag..HEAD)
           echo $latest_tag-$n_since_tag-SNAPSHOT
   #         git fetch --tags
