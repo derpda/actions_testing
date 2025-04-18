@@ -17,9 +17,9 @@ jobs:
       - name: Unshallow the repo
         if: ${{ !env.ACT }}
         run: |
+          git fetch --unshallow
           git describe --tags
           echo $(git describe --tags | awk '{print substr($0, 0, length($0)-10)}')-SNAPSHOT
-  #         git fetch --unshallow
   #         git fetch --tags
   #     - name: Check if version number is valid
   #       id: check_version
