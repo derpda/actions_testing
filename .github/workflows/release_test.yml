@@ -1,96 +1,124 @@
 name: "Release new version from specific branch"
 on:
+  release:
+    types: [published]
   workflow_dispatch:
-    inputs:
-      version:
-        description: 'Version to release'
-        required: true
-        type: string
-      releaseNotes:
-        description: 'Release notes'
-        required: true
-        type: string
 
 jobs:
   Initial-Checks:
     runs-on: ubuntu-latest
-    outputs:
-      IS_DEV: ${{ steps.check_branch.outputs.IS_DEV }}
+    # outputs:
+    #   IS_DEV: ${{ steps.check_branch.outputs.IS_DEV }}
+    #   version: ${{ steps.check_version.outputs.version }}
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-tags: true
-      - name: Check if version number is valid
-        id: check_version
+      - name: Unshallow the repo
+        if: ${{ !env.ACT }}
         run: |
-          git fetch --tags
-          # Check if version number is semantically correct
-          if [[ ! $VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "Invalid version number: $VERSION"
-            exit 1
-          fi
-          # Check if version number does not exist
-          if git rev-parse "refs/tags/v$VERSION" >/dev/null 2>&1; then
-            echo "Tag v$VERSION already exists"
-            exit 1
-          fi
-          # Check if version number is newer than the latest tag (strip 'v' from tag)
-          LATEST_TAG=$(git tag --list 'v*' | tail -1 | sed 's/v//')
-          if [[ $VERSION < $LATEST_TAG ]]; then
-            echo "Version number is older than the latest tag"
-            exit 1
-          fi
-        shell: bash
-        env:
-          VERSION: ${{ inputs.version }}
-      - name: Check release branch status
-        id: check_branch
-        run: |
-          # Assert that the release branch is not master (we merge to master from release branches)
-          if [[ $GITHUB_REF == refs/heads/master ]]; then
-            echo "Cannot release from master branch"
-            exit 1
-          fi
-          # Fetch history from the remote
-          git fetch --unshallow
-          # Assert that master is an ancestor of the release branch
-          if ! git merge-base --is-ancestor origin/master $GITHUB_REF; then
-            echo "Release branch is not a parent of master"
-            exit 1
-          fi
-          # If the release branch is not dev, create a new local branch from origin/dev and check that
-          # it can be fast-forward rebased onto $GITHUB_REF
-          IS_DEV=0
-          if [[ $GITHUB_REF != refs/heads/dev ]]; then
-            IS_DEV=1
-            git checkout -b dev origin/dev
-            if ! git rebase --onto $GITHUB_REF dev; then
-              echo "Cannot rebase dev onto $GITHUB_REF. Please rebase dev onto $GITHUB_REF and push the changes"
-              exit 1
-            fi
-            # Return to the original branch
-            git checkout -
-            git branch -D dev
-          fi
-          echo "IS_DEV=$IS_DEV" >> "$GITHUB_OUTPUT"
-        shell: bash
-  SlackNotification:
-    runs-on: ubuntu-latest
-    needs: Initial-Checks
-    if: always() && !cancelled()
-    steps:
-      - name: Notify on Slack
-        uses: rtCamp/action-slack-notify@v2
-        env:
-          SLACK_LINK_NAMES: true
-          SLACK_WEBHOOK: ${{ secrets.EDGEOCR_SLACK_WEBHOOK }}
-          SLACK_CHANNEL: pj-edge-ocr
-          SLACK_USERNAME: Edge OCR SDK Release
-          SLACK_ICON: https://edge-ocr.com/favicon.ico
-          SLACK_TITLE: "Edge OCR SDK Release"
-          SLACK_MESSAGE_ON_SUCCESS: |
-            <@U011RKSTY2Z> New release v${{ inputs.version }} was published.
-            ${{ needs.Initial-Checks.outputs.IS_DEV && 'Rebase dev brach <@U011RKSTY2Z>' }}
-          SLACK_MESSAGE_ON_FAILURE: "@channel Release v${{ inputs.version }} failed"
-          SLACK_COLOR: ${{ needs.Initial-Checks.result }}
-          MSG_MINIMAL: actions url
+          git describe --tags
+          echo $(git describe --tags | awk '{print substr($0, 0, length($0)-10)}')-SNAPSHOT
+  #         git fetch --unshallow
+  #         git fetch --tags
+  #     - name: Check if version number is valid
+  #       id: check_version
+  #       shell: bash
+  #       run: |
+  #         VERSION=$(echo "${{ github.event.release.tag_name }}" | sed 's/^v//')
+  #         # Check if version number is semantically correct
+  #         if [[ ! $VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+  #           echo "Invalid version number: $VERSION"
+  #           exit 1
+  #         fi
+  #         # Check if version number is newer than the latest tag (strip 'v' from tag)
+  #         LATEST_TAG=$(git tag --list 'v*' | tail -1 | sed 's/v//')
+  #         if [[ $VERSION < $LATEST_TAG ]]; then
+  #           echo "Version number is older than the latest tag"
+  #           exit 1
+  #         fi
+  #         echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
+  #     - name: Check release branch status
+  #       id: check_branch
+  #       run: |
+  #         # Assert that the release branch is not master (we merge to master from release branches)
+  #         if [[ $GITHUB_REF == refs/heads/master ]]; then
+  #           echo "Cannot release from master branch"
+  #           exit 1
+  #         fi
+  #         # Assert that master is an ancestor of the release branch
+  #         if ! git merge-base --is-ancestor origin/master $GITHUB_REF; then
+  #           echo "Release branch is not a parent of master"
+  #           exit 1
+  #         fi
+  #         # If the release branch is not dev, ensure that the release branch is an
+  #         # ancestor of dev.
+  #         IS_DEV=0
+  #         if [[ $GITHUB_REF != refs/heads/dev ]]; then
+  #           IS_DEV=1
+  #           if ! git merge-base --is-ancestor $GITHUB_REF origin/dev; then
+  #             echo "Release branch is not a parent of dev"
+  #             exit 1
+  #           fi
+  #         fi
+  #         echo "IS_DEV=$IS_DEV" >> "$GITHUB_OUTPUT"
+  #       shell: bash
+  #     - name: Install GH cli
+  #       if: ${{ env.ACT }}
+  #       run: |
+  #         wget -O gh.deb https://github.com/cli/cli/releases/download/v2.70.0/gh_2.70.0_linux_amd64.deb
+  #         sudo dpkg -i gh.deb
+  #         rm gh.deb
+  #     - name: Check latest action status on dev branch
+  #       id: check_action_status
+  #       env:
+  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #       shell: bash
+  #       run: |
+  #         # Assert that the last CI build on dev passed, ask if it was cancelled
+  #         # NOTE: We check on dev because we already know that dev is a descendant of $BRANCH
+  #         LAST_JSON=$(gh run list --branch dev --limit 1 --json conclusion,status,headSha)
+  #         LAST_STATUS=$(echo $LAST_JSON | jq ".[] | .status" - | tr -d '"')
+  #         LAST_CONCLUSION=$(echo $LAST_JSON | jq ".[] | .conclusion" - | tr -d '"')
+  #         LAST_SHA=$(echo $LAST_JSON | jq ".[] | .headSha" - | tr -d '"')
+  #         # If last run not completed, end
+  #         if [ "$LAST_STATUS" != "completed" ]; then
+  #           echo "Last CI run on the dev branch must be completed."
+  #           exit 1
+  #         fi
+  #         if [ "$LAST_CONCLUSION" == "cancelled" ]; then
+  #           read -p "Last CI run on the dev branch was cancelled. Continue? (y/n) " response
+  #           if [ "$response" != "y" ]; then
+  #             exit 1
+  #           fi
+  #         elif [ "$LAST_CONCLUSION" != "success" ]; then
+  #           echo "Last CI run on the dev branch must be successful."
+  #           exit 1
+  #         fi
+  #         # If the last run was on a different commit, end
+  #         if [ $(git rev-parse origin/dev) != $LAST_SHA ]; then
+  #           echo "The last CI run on the dev branch was not on the current commit."
+  #           exit 1
+  #         fi
+
+  # SlackNotification:
+  #   runs-on: ubuntu-latest
+  #   needs: Initial-Checks
+  #   if: always() && !cancelled()
+  #   steps:
+  #     - name: Notify on Slack
+  #       uses: rtCamp/action-slack-notify@v2
+  #       if: ${{ !env.ACT }}
+  #       env:
+  #         SLACK_LINK_NAMES: true
+  #         SLACK_WEBHOOK: ${{ secrets.EDGEOCR_SLACK_WEBHOOK }}
+  #         SLACK_CHANNEL: pj-edge-ocr
+  #         SLACK_USERNAME: Edge OCR SDK Release
+  #         SLACK_ICON: https://edge-ocr.com/favicon.ico
+  #         SLACK_TITLE: "Edge OCR SDK Release"
+  #         SLACK_MESSAGE_ON_SUCCESS: |
+  #           New release v${{ needs.Initial-Checks.outputs.version }} was published.
+  #           ${{ needs.Initial-Checks.outputs.IS_DEV && 'Rebase dev brach <@U011RKSTY2Z>' }}
+  #         SLACK_MESSAGE_ON_FAILURE: "@channel Release v${{ needs.Initial-Checks.outputs.version }} failed"
+  #         SLACK_COLOR: ${{ needs.Initial-Checks.result }}
+  #         MSG_MINIMAL: actions url
