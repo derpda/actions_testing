@@ -1,45 +1,20 @@
-name: PR Dev Tests
 on:
-  issue_comment:
-    types: [created]
+  workflow_call:
+    inputs:
+      commit_ref:
+        description: "Commit reference to build and test"
+        type: string
+        required: true
 
 jobs:
-  PrintStuff:
+  RunTests:
     runs-on: ubuntu-latest
     steps:
-      - name: Print comment body
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.commit_ref }}
+      - name: Build and run tests
         run: |
-          echo "Comment body: ${{ github.event.comment.body }}"
-          echo "Is this a pull request? ${{ github.event.issue.pull_request != null }}"
-          echo "url: ${{ github.event.issue.pull_request.url }}"
-
-  SkipTests:
-    if: ${{ github.event.comment.body == '/skip_tests' && github.event.issue.pull_request}}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Skip tests
-        run: |
-          echo "Tests skipped as per request."
-
-  Tests:
-    if: ${{ github.event.comment.body == '/run_tests' && github.event.issue.pull_request }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Run development tests
-        run: |
-          echo "Running development tests..."
-
-  TestsOk:
-    needs: [Tests, SkipTests]
-    if: ${{ !cancelled() && (needs.SkipTests.result != 'skipped' || needs.Tests.result != 'skipped') }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Tests failed
-        if: ${{ needs.SkipTests.result != 'success' && needs.Tests.result != 'success' }}
-        run: |
-          echo "Tests failed. Please check the logs for details."
-          exit 1
-      - name: All tests passed
-        if: ${{ needs.Tests.result == 'success' || needs.SkipTests.result == 'success' }}
-        run: |
-          echo "Tests skipped or passed successfully."
+          echo "Building and running tests for commit: ${{ inputs.commit_ref }}"
+          # Add your build and test commands here
+          echo "Tests completed successfully."

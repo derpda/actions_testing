@@ -20,7 +20,7 @@ jobs:
           このプルリクエストに対してテストを実行するには、以下の内容のコメントを投稿してください。
           - テストを実行するには、「/run_tests」
           - テストをスキップするには、「/skip_tests」
-          - プルリクエストをマージするには、「/fast_forward」
+          - プルリクエストをマージするには、「/merge」
           EOF
           gh pr \
             comment ${{ github.event.pull_request.number }} \
