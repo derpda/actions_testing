@@ -22,6 +22,8 @@ jobs:
       base_ref: ${{ steps.get_refs.outputs.base_ref }}
       head_ref: ${{ steps.get_refs.outputs.head_ref }}
     permissions:
+      contents: read
+      issues: read
       pull-requests: read
     steps:
       - uses: xt0rted/pull-request-comment-branch@v3
