@@ -3,8 +3,15 @@ on:
   issue_comment:
     types: [created]
 
-
 jobs:
+  PrintStuff:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Print comment body
+        run: |
+          echo "Comment body: ${{ github.event.comment.body }}"
+          echo "Is this a pull request? ${{ github.event.issue.pull_request != null }}"
+
   SkipTests:
     if: ${{ github.event.comment.body == '/skip_tests' && github.event.issue.pull_request}}
     runs-on: ubuntu-latest
