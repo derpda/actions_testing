@@ -19,4 +19,7 @@ jobs:
           - テストを実行するには、「/run_tests」の内容のコメントを投稿してください。
           - テストをスキップするには、「/skip_tests」の内容のコメントを投稿してください。
           EOF
-          gh pr comment ${{ github.event.pull_request.number }} --body "$(cat comment.txt)"
+          gh pr \
+            comment ${{ github.event.pull_request.number }} \
+            --repo ${{ github.repository }} \
+            --body "$(cat comment.txt)"
