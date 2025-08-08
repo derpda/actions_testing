@@ -11,5 +11,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Post comment on PR
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          gh pr comment ${{ github.event.pull_request.number }} --body "テストを実行するには、「/run_tests」の内容のコメントを投稿してください。\\nテストをスキップするには、「/skip_tests」の内容のコメントを投稿してください。"
+          gh pr comment ${{ github.event.pull_request.number }} --body \
+            "テストを実行するには、「/run_tests」の内容のコメントを投稿してください。\\n" \
+            "テストをスキップするには、「/skip_tests」の内容のコメントを投稿してください。"
