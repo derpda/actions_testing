@@ -1,0 +1,19 @@
+# Post a comment when a pull request is opened, explaining how to run the tests
+name: Comment on PR
+on:
+  pull_request:
+    types: [opened]
+    branches:
+      - dev
+
+jobs:
+  comment:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Post comment on PR
+        uses: peter-evans/create-or-update-comment@v3
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          body: |
+            テストを実行するには、「/run_tests」の内容のコメントを投稿してください。
+            テストをスキップするには、「/skip_tests」の内容のコメントを投稿してください。
