@@ -11,9 +11,5 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Post comment on PR
-        uses: peter-evans/create-or-update-comment@v3
-        with:
-          issue-number: ${{ github.event.pull_request.number }}
-          body: |
-            テストを実行するには、「/run_tests」の内容のコメントを投稿してください。
-            テストをスキップするには、「/skip_tests」の内容のコメントを投稿してください。
+        run: |
+          gh pr comment ${{ github.event.pull_request.number }} --body "テストを実行するには、「/run_tests」の内容のコメントを投稿してください。\\nテストをスキップするには、「/skip_tests」の内容のコメントを投稿してください。"
