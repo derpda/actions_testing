@@ -6,7 +6,7 @@ on:
 
 jobs:
   SkipTests:
-    if: ${{ github.event.comment.body == '/skip_tests' && github.event.issue.pull_request}}
+    if: ${{ github.event.comment.body == '/skip_tests' && github.event.issue.pull_request && github.base_ref == 'dev'}}
     runs-on: ubuntu-latest
     steps:
       - name: Skip tests
@@ -14,7 +14,7 @@ jobs:
           echo "Tests skipped as per request."
 
   Tests:
-    if: ${{ github.event.comment.body == '/run_tests' && github.event.issue.pull_request }}
+    if: ${{ github.event.comment.body == '/run_tests' && github.event.issue.pull_request && github.base_ref == 'dev' }}
     runs-on: ubuntu-latest
     steps:
       - name: Run development tests
