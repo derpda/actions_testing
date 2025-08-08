@@ -17,9 +17,10 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           cat <<EOF > comment.txt
-          このプルリクエストに対してテストを実行するには、
-          - テストを実行するには、「/run_tests」の内容のコメントを投稿してください。
-          - テストをスキップするには、「/skip_tests」の内容のコメントを投稿してください。
+          このプルリクエストに対してテストを実行するには、以下の内容のコメントを投稿してください。
+          - テストを実行するには、「/run_tests」
+          - テストをスキップするには、「/skip_tests」
+          - プルリクエストをマージするには、「/fast_forward」
           EOF
           gh pr \
             comment ${{ github.event.pull_request.number }} \
