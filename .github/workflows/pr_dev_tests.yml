@@ -11,7 +11,7 @@ jobs:
         run: |
           echo "Comment body: ${{ github.event.comment.body }}"
           echo "Is this a pull request? ${{ github.event.issue.pull_request != null }}"
-          echo "Base ref2: ${{ github.base_ref }}"
+          echo "url: ${{ github.event.issue.pull_request.url }}"
 
   SkipTests:
     if: ${{ github.event.comment.body == '/skip_tests' && github.event.issue.pull_request}}
