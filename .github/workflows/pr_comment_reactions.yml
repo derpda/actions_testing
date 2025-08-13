@@ -7,44 +7,37 @@ concurrency:
   group: pr-comment-reactions
   cancel-in-progress: false
 jobs:
-  GetRefsForTests:
+  RunOrSkipTests:
     if: ${{ github.event.issue.pull_request && (github.event.comment.body == '/tests' || github.event.comment.body == '/skip_tests')}}
     runs-on: ubuntu-latest
-    outputs:
-      head_sha: ${{ steps.output_head_sha.outputs.head_sha }}
     permissions:
       contents: read
       issues: read
       pull-requests: read
+      actions: write
     steps:
       - uses: xt0rted/pull-request-comment-branch@v3
-        if: ${{ github.event.comment.body == '/tests' }}
         id: get_refs
       - name: Ensure base is dev
-        if: ${{ github.event.comment.body == '/tests' }}
         run: |
           echo "${{ steps.get_refs.outputs.base_ref }}"
           if [[ "${{ steps.get_refs.outputs.base_ref }}" != "dev" ]]; then
             echo "This PR must target the dev branch to run tests."
             exit 1
           fi
-      - name: Output head ref
-        id: output_head_sha
-        run: |
-          if [[ ${{ github.event.comment.body == '/tests' }} ]]; then
-            echo "head_sha=${{ steps.get_refs.outputs.head_sha }}" >> $GITHUB_OUTPUT
-          else
-            # If the command is /skip_tests, we don't need to set head_sha
-            echo "head_sha=" >> $GITHUB_OUTPUT
-          fi
-
-  RunOrSkipTests:
-    needs: GetRefsForTests
-    if: ${{ needs.GetRefsForTests.result == 'success' }}
-    uses: ./.github/workflows/pr_dev_tests.yml
-    with:
-      # NOTE: Tests will only run if the head_sha is set.
-      commit_sha: ${{ needs.GetRefsForTests.outputs.head_sha }}
+      - name: Starts tests run
+        uses: actions/github-script@v6
+        with:
+          script: |
+            await github.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'pr_dev_tests.yml',
+              ref: '${{ steps.get_refs.outputs.head_ref }}',
+              inputs: {
+                skip: '${{ github.event.comment.body == '/skip_tests' }}'
+              }
+            });
 
   FastForwardMerge:
     # Only run if the comment contains the /merge command.

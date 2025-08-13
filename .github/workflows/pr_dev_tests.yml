@@ -1,56 +1,40 @@
 on:
-  workflow_call:
+  workflow_dispatch:
     inputs:
-      commit_sha:
-        description: "Commit reference to build and test"
-        type: string
+      skip:
+        description: "Whether to skip tests"
+        type: boolean
+        default: false
         required: true
 
 jobs:
   BuildAndTest:
-    # NOTE: Only run if commit_sha is provided.
-    if: ${{ inputs.commit_sha != '' }}
+    if: ${{ !inputs.skip }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.commit_sha }}
+          ref: ${{ github.event.ref }}
       - name: Build and run tests
         run: |
-          echo "Building and running tests for commit: ${{ inputs.commit_sha }}"
+          echo "Building and running tests for ref: ${{ github.event.ref }}"
           # Add your build and test commands here
           echo "Tests completed successfully."
 
-  Skip:
-    # NOTE: Only run if commit_sha is NOT provided.
-    if: ${{ inputs.commit_sha == '' }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Tests skipped
-        run: |
-          echo "Tests skipped as per request."
-
   BuildAndTestOrSkip:
-    needs: [BuildAndTest, Skip]
+    needs: [BuildAndTest]
     if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     permissions:
       statuses: write
     steps:
-      - name: Set commit status
-        uses: actions/github-script@v6
-        with:
-          script: |
-            const status = '${{ needs.BuildAndTest.result }}';
-            const description = status === 'success' ? 'Tests passed successfully.' :
-              status === 'failure' ? 'Tests failed.' : 'Tests were skipped.';
-            const state = status === 'success' ? 'success' :
-              status === 'failure' ? 'failure' : 'neutral';
-            const sha = '${{ inputs.commit_sha }}';
-            await github.rest.repos.createCommitStatus({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              sha: sha,
-              state: state,
-              description: description,
-            });
+      - name: Run or skip tests based on previous steps
+        run: |
+          if [[ "${{ needs.BuildAndTest.result }}" == "success" ]]; then
+            echo "Tests were run successfully."
+          elif [[ "${{ needs.BuildAndTest.result }}" == "failure" ]]; then
+            echo "Tests failed."
+            exit 1
+          else
+            echo "Tests were skipped."
+          fi
