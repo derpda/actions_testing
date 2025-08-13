@@ -40,7 +40,6 @@ jobs:
         with:
           script: |
             const status = '${{ needs.BuildAndTest.result }}';
-            const context = 'Build and Test';
             const description = status === 'success' ? 'Tests passed successfully.' :
               status === 'failure' ? 'Tests failed.' : 'Tests were skipped.';
             const state = status === 'success' ? 'success' :
@@ -50,6 +49,5 @@ jobs:
               repo: context.repo.repo,
               sha: context.sha,
               state: state,
-              context: context,
               description: description,
             });
