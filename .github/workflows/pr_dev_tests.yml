@@ -21,7 +21,7 @@ jobs:
           # Add your build and test commands here
           echo "Tests completed successfully."
 
-  SkipTests:
+  Skip:
     # NOTE: Only run if commit_ref is NOT provided.
     if: ${{ inputs.commit_ref == '' }}
     runs-on: ubuntu-latest
@@ -30,18 +30,26 @@ jobs:
         run: |
           echo "Tests skipped as per request."
 
-  BuildAndTestOrSkipped:
-    needs: [BuildAndTest, SkipTests]
+  BuildAndTestOrSkip:
+    needs: [BuildAndTest, Skip]
     if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     steps:
-      - name: Run or skip tests based on previous steps
-        run: |
-          if [[ "${{ needs.BuildAndTest.result }}" == "success" ]]; then
-            echo "Tests were run successfully."
-          elif [[ "${{ needs.BuildAndTest.result }}" == "failure" ]]; then
-            echo "Tests failed."
-            exit 1
-          else
-            echo "Tests were skipped."
-          fi
+      - name: Set commit status
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const status = '${{ needs.BuildAndTest.result }}';
+            const context = 'Build and Test';
+            const description = status === 'success' ? 'Tests passed successfully.' :
+              status === 'failure' ? 'Tests failed.' : 'Tests were skipped.';
+            const state = status === 'success' ? 'success' :
+              status === 'failure' ? 'failure' : 'neutral';
+            await github.rest.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: context.sha,
+              state: state,
+              context: context,
+              description: description,
+            });
