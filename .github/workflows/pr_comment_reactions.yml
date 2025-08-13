@@ -14,10 +14,8 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: xt0rted/pull-request-comment-branch@v3
-        if: ${{ github.event.comment.body == '/tests' }}
         id: get_refs
       - name: Ensure base is dev
-        if: ${{ github.event.comment.body == '/tests' }}
         run: |
           echo "${{ steps.get_refs.outputs.base_ref }}"
           if [[ "${{ steps.get_refs.outputs.base_ref }}" != "dev" ]]; then
