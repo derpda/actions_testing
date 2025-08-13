@@ -26,10 +26,10 @@ jobs:
             exit 1
           fi
       - name: Starts tests run
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           script: |
-            await github.actions.createWorkflowDispatch({
+            await github.rest.actions.createWorkflowDispatch({
               owner: context.repo.owner,
               repo: context.repo.repo,
               workflow_id: 'pr_dev_tests.yml',
