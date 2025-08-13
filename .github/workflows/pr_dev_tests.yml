@@ -46,10 +46,11 @@ jobs:
               status === 'failure' ? 'Tests failed.' : 'Tests were skipped.';
             const state = status === 'success' ? 'success' :
               status === 'failure' ? 'failure' : 'neutral';
+            const sha = '${{ inputs.commit_sha }}';
             await github.rest.repos.createCommitStatus({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              sha: ${{ inputs.commit_sha }},
+              sha: sha,
               state: state,
               description: description,
             });
