@@ -8,7 +8,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   SkipTests:
-    if: ${{ github.event.issue.pull_request && github.event.comment.body == '/skip_tests' }}
+    if: ${{ github.event.issue.pull_request && github.event.comment.body == '/tests' }}
     runs-on: ubuntu-latest
     steps:
       - name: Tests skipped
