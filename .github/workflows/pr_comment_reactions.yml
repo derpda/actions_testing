@@ -11,7 +11,7 @@ jobs:
     if: ${{ github.event.issue.pull_request && (github.event.comment.body == '/tests' || github.event.comment.body == '/skip_tests')}}
     runs-on: ubuntu-latest
     outputs:
-      head_ref: ${{ steps.output_head_ref.outputs.head_ref }}
+      head_sha: ${{ steps.output_head_sha.outputs.head_sha }}
     permissions:
       contents: read
       issues: read
@@ -29,13 +29,13 @@ jobs:
             exit 1
           fi
       - name: Output head ref
-        id: output_head_ref
+        id: output_head_sha
         run: |
           if [[ ${{ github.event.comment.body == '/tests' }} ]]; then
-            echo "head_ref=${{ steps.get_refs.outputs.head_ref }}" >> $GITHUB_OUTPUT
+            echo "head_sha=${{ steps.get_refs.outputs.head_sha }}" >> $GITHUB_OUTPUT
           else
-            # If the command is /skip_tests, we don't need to set head_ref
-            echo "head_ref=" >> $GITHUB_OUTPUT
+            # If the command is /skip_tests, we don't need to set head_sha
+            echo "head_sha=" >> $GITHUB_OUTPUT
           fi
 
   RunOrSkipTests:
@@ -43,19 +43,17 @@ jobs:
     if: ${{ needs.GetRefsForTests.result == 'success' }}
     uses: ./.github/workflows/pr_dev_tests.yml
     with:
-      # NOTE: Tests will only run if the head_ref is set.
-      commit_ref: ${{ needs.GetRefsForTests.outputs.head_ref }}
+      # NOTE: Tests will only run if the head_sha is set.
+      commit_sha: ${{ needs.GetRefsForTests.outputs.head_sha }}
 
   FastForwardMerge:
     # Only run if the comment contains the /merge command.
     if: ${{ github.event.issue.pull_request && github.event.comment.body == '/merge' }}
     runs-on: ubuntu-latest
-
     permissions:
       contents: write
       pull-requests: write
       issues: write
-
     steps:
       - name: Fast forwarding merging the PR
         uses: sequoia-pgp/fast-forward@v1

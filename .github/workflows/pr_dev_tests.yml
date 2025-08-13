@@ -1,29 +1,29 @@
 on:
   workflow_call:
     inputs:
-      commit_ref:
+      commit_sha:
         description: "Commit reference to build and test"
         type: string
         required: true
 
 jobs:
   BuildAndTest:
-    # NOTE: Only run if commit_ref is provided.
-    if: ${{ inputs.commit_ref != '' }}
+    # NOTE: Only run if commit_sha is provided.
+    if: ${{ inputs.commit_sha != '' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.commit_ref }}
+          ref: ${{ inputs.commit_sha }}
       - name: Build and run tests
         run: |
-          echo "Building and running tests for commit: ${{ inputs.commit_ref }}"
+          echo "Building and running tests for commit: ${{ inputs.commit_sha }}"
           # Add your build and test commands here
           echo "Tests completed successfully."
 
   Skip:
-    # NOTE: Only run if commit_ref is NOT provided.
-    if: ${{ inputs.commit_ref == '' }}
+    # NOTE: Only run if commit_sha is NOT provided.
+    if: ${{ inputs.commit_sha == '' }}
     runs-on: ubuntu-latest
     steps:
       - name: Tests skipped
