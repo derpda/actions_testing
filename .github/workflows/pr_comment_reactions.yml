@@ -1,4 +1,4 @@
-name: PR Dev Tests
+name: "Comment on PR: Handle commands"
 on:
   issue_comment:
     types: [created]
@@ -7,57 +7,44 @@ concurrency:
   group: pr-comment-reactions
   cancel-in-progress: false
 jobs:
-  SkipTests:
-    if: ${{ github.event.issue.pull_request && github.event.comment.body == '/tests' }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Tests skipped
-        run: |
-          echo "Tests skipped as per request."
-
   GetRefsForTests:
-    if: ${{ github.event.issue.pull_request && github.event.comment.body == '/run_tests' }}
+    if: ${{ github.event.issue.pull_request && (github.event.comment.body == '/tests' || github.event.comment.body == '/skip_tests')}}
     runs-on: ubuntu-latest
     outputs:
-      base_ref: ${{ steps.get_refs.outputs.base_ref }}
-      head_ref: ${{ steps.get_refs.outputs.head_ref }}
+      head_ref: ${{ steps.output_head_ref.outputs.head_ref }}
     permissions:
       contents: read
       issues: read
       pull-requests: read
     steps:
       - uses: xt0rted/pull-request-comment-branch@v3
+        if: ${{ github.event.comment.body == '/tests' }}
         id: get_refs
       - name: Ensure base is dev
+        if: ${{ github.event.comment.body == '/tests' }}
         run: |
           echo "${{ steps.get_refs.outputs.base_ref }}"
           if [[ "${{ steps.get_refs.outputs.base_ref }}" != "dev" ]]; then
             echo "This PR must target the dev branch to run tests."
             exit 1
           fi
+      - name: Output head ref
+        id: output_head_ref
+        run: |
+          if [[ ${{ github.event.comment.body == '/tests' }} ]]; then
+            echo "head_ref=${{ steps.get_refs.outputs.head_ref }}" >> $GITHUB_OUTPUT
+          else
+            # If the command is /skip_tests, we don't need to set head_ref
+            echo "head_ref=" >> $GITHUB_OUTPUT
+          fi
 
-  RunTests:
+  RunOrSkipTests:
     needs: GetRefsForTests
     if: ${{ needs.GetRefsForTests.result == 'success' }}
     uses: ./.github/workflows/pr_dev_tests.yml
     with:
+      # NOTE: Tests will only run if the head_ref is set.
       commit_ref: ${{ needs.GetRefsForTests.outputs.head_ref }}
-
-  RunOrSkipTests:
-    needs: [SkipTests, RunTests]
-    if: ${{ !cancelled() && (needs.SkipTests.result != 'skipped' || needs.RunTests.result != 'skipped') }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Run or skip tests based on previous steps
-        run: |
-          if [[ "${{ needs.RunTests.result }}" == "success" ]]; then
-            echo "Tests were run successfully."
-          elif [[ "${{ needs.RunTests.result }}" == "failure" ]]; then
-            echo "Tests failed."
-            exit 1
-          else
-            echo "Tests were skipped."
-          fi
 
   FastForwardMerge:
     # Only run if the comment contains the /merge command.

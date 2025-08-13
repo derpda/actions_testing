@@ -7,7 +7,9 @@ on:
         required: true
 
 jobs:
-  RunTests:
+  BuildAndTest:
+    # NOTE: Only run if commit_ref is provided.
+    if: ${{ inputs.commit_ref != '' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -18,3 +20,28 @@ jobs:
           echo "Building and running tests for commit: ${{ inputs.commit_ref }}"
           # Add your build and test commands here
           echo "Tests completed successfully."
+
+  SkipTests:
+    # NOTE: Only run if commit_ref is NOT provided.
+    if: ${{ inputs.commit_ref == '' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Tests skipped
+        run: |
+          echo "Tests skipped as per request."
+
+  BuildAndTestOrSkipped:
+    needs: [BuildAndTest, SkipTests]
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run or skip tests based on previous steps
+        run: |
+          if [[ "${{ needs.BuildAndTest.result }}" == "success" ]]; then
+            echo "Tests were run successfully."
+          elif [[ "${{ needs.BuildAndTest.result }}" == "failure" ]]; then
+            echo "Tests failed."
+            exit 1
+          else
+            echo "Tests were skipped."
+          fi
