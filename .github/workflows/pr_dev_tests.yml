@@ -27,7 +27,7 @@ jobs:
       - name: Remove label
         run: |
           if [[ "${{ github.event.pull_request.labels.*.name }}" == *"run-tests"* ]]; then
-            gh pr edit ${{ github.event.pull_request.number }} --remove-label "run-tests"
+            gh pr edit ${{ github.event.pull_request.number }} --repo ${{ github.repository }} --remove-label "run-tests"
           elif [[ "${{ github.event.pull_request.labels.*.name }}" == *"skip-tests"* ]]; then
-            gh pr edit ${{ github.event.pull_request.number }} --remove-label "skip-tests"
+            gh pr edit ${{ github.event.pull_request.number }} --repo ${{ github.repository }} --remove-label "skip-tests"
           fi
