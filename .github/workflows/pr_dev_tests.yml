@@ -6,6 +6,9 @@ on:
         type: string
         required: true
 
+permissions:
+  contents: write
+
 jobs:
   BuildAndTest:
     # NOTE: Only run if commit_ref is provided.
@@ -34,8 +37,6 @@ jobs:
     needs: [BuildAndTest, Skip]
     if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
       - name: Set commit status
         uses: actions/github-script@v6
