@@ -10,16 +10,16 @@ jobs:
   RunTests:
     if: ${{ github.event.issue.pull_request && github.event.comment.body == '/run_tests' }}
     runs-on: ubuntu-latest
-    permissions:
-      pull-requests: write
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: Label the PR
         run: gh pr edit ${{ github.event.issue.number }} --add-label "run-tests"
   SkipTests:
     if: ${{ github.event.issue.pull_request && github.event.comment.body == '/skip_tests' }}
     runs-on: ubuntu-latest
-    permissions:
-      pull-requests: write
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: Label the PR
         run: gh pr edit ${{ github.event.issue.number }} --add-label "skip-tests"
