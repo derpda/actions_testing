@@ -35,7 +35,7 @@ jobs:
               workflow_id: 'pr_dev_tests.yml',
               ref: '${{ steps.get_refs.outputs.head_ref }}',
               inputs: {
-                skip: '${{ github.event.comment.body == '/skip_tests' }}'
+                skip: '${{ github.event.comment.body == '/skip_tests' }}',
                 sha: '${{ steps.get_refs.outputs.head_sha }}'
               }
             });
