@@ -1,19 +1,23 @@
-name: "PR to dev: Build and test"
 on:
-  # Run when PR is labelled with "run-tests" or "skip-tests"
-  pull_request:
-    types: [labeled]
-
+  workflow_dispatch:
+    inputs:
+      skip:
+        description: "Whether to skip tests"
+        type: boolean
+        default: false
+        required: true
 
 jobs:
   BuildAndTest:
-    if: contains(github.event.pull_request.labels.*.name, 'run-tests')
+    if: ${{ !inputs.skip }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Build and run tests
         run: |
-          echo "Building and running tests for ref: ${{ github.event.pull_request.head.sha }}"
+          echo "Building and running tests for ref: ${{ github.event.ref }}"
+          # Wait for 10 seconds to simulate build time
+          sleep 10
           # Add your build and test commands here
           echo "Tests completed successfully."
 
@@ -21,13 +25,14 @@ jobs:
     needs: [BuildAndTest]
     if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
-    env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
-      - name: Remove label
+      - name: Check if tests were skipped
         run: |
-          if [[ "${{ github.event.pull_request.labels.*.name }}" == *"run-tests"* ]]; then
-            gh pr edit ${{ github.event.pull_request.number }} --repo ${{ github.repository }} --remove-label "run-tests"
-          elif [[ "${{ github.event.pull_request.labels.*.name }}" == *"skip-tests"* ]]; then
-            gh pr edit ${{ github.event.pull_request.number }} --repo ${{ github.repository }} --remove-label "skip-tests"
+          if [ '${{ needs.BuildAndTest.result }}' == 'failure' ]; then
+            echo "Tests failed."
+            exit 1
+          elif [ '${{ needs.BuildAndTest.result }}' == 'success' ]; then
+            echo "Tests were run successfully."
+          else
+            echo "Tests were skipped."
           fi
