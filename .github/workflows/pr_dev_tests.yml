@@ -1,92 +1,31 @@
+name: "PR to dev: Build and test"
 on:
-  workflow_dispatch:
-    inputs:
-      skip:
-        description: "Whether to skip tests"
-        type: boolean
-        default: false
-        required: true
-      sha:
-        description: "The commit SHA to run tests against"
-        type: string
-        required: true
+  # Run when PR is labelled with "run-tests" or "skip-tests"
+  pull_request:
+    types: [labeled]
+
 
 jobs:
-  CreateCheckRun:
-    runs-on: ubuntu-latest
-    outputs:
-      checkrun_id: ${{ steps.create_checkrun.outputs.result }}
-    steps:
-      - name: Create check run
-        id: create_checkrun
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const response = await github.rest.checks.create({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              name: 'Build and Test',
-              head_sha: '${{ github.event.inputs.sha }}',
-              status: 'queued',
-              output: {
-                title: 'Tests queued',
-                summary: 'Tests are queued to run.'
-              }
-            });
-            return response.data.id;
-          result-encoding: string
-
   BuildAndTest:
-    needs: CreateCheckRun
-    if: ${{ !inputs.skip }}
+    if: contains(github.event.pull_request.labels.*.name, 'run-tests')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.ref }}
-      - name: Set checkrun status to in_progress
-        id: set_status
-        uses: actions/github-script@v7
-        with:
-          script: |
-            await github.rest.checks.update({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              check_run_id: ${{ needs.CreateCheckRun.outputs.checkrun_id }},
-              status: 'in_progress',
-              output: {
-                title: 'Tests in progress',
-                summary: 'Tests are currently running.'
-              }
-            });
       - name: Build and run tests
         run: |
-          echo "Building and running tests for ref: ${{ github.event.ref }}"
+          echo "Building and running tests for ref: ${{ github.event.pull_request.head.sha }}"
           # Add your build and test commands here
           echo "Tests completed successfully."
 
   BuildAndTestOrSkip:
-    needs: [CreateCheckRun, BuildAndTest]
+    needs: [BuildAndTest]
     if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     steps:
-      - name: Set checkrun status to completed
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const status = '${{ needs.BuildAndTest.result }}';
-            const description = status === 'success' ? 'Tests passed successfully.' :
-              status === 'failure' ? 'Tests failed.' : 'Tests were skipped.';
-            const conclusion = status === 'success' ? 'success' :
-              status === 'failure' ? 'failure' : 'success';
-            await github.rest.checks.update({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              check_run_id: ${{ needs.CreateCheckRun.outputs.checkrun_id }},
-              status: 'completed',
-              conclusion: conclusion,
-              output: {
-                title: 'Tests completed',
-                summary: description
-              }
-            });
+      - name: Remove label
+        run: |
+          if [[ "${{ github.event.pull_request.labels.*.name }}" == *"run-tests"* ]]; then
+            gh pr edit ${{ github.event.pull_request.number }} --remove-label "run-tests"
+          elif [[ "${{ github.event.pull_request.labels.*.name }}" == *"skip-tests"* ]]; then
+            gh pr edit ${{ github.event.pull_request.number }} --remove-label "skip-tests"
+          fi
