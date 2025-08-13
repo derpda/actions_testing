@@ -22,15 +22,18 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
+            const skip = '${{ github.event.inputs.skip }}' === 'true';
+            const title = skip ? 'Skipping tests' : 'Running tests';
+            const summary = skip ? 'Tests were skipped as per request.' : 'Tests are being run as requested.';
             const response = await github.rest.checks.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              name: 'Build and Test',
+              name: 'Build and Test or Skip',
               head_sha: '${{ github.event.inputs.sha }}',
-              status: 'queued',
+              status: 'in_progress',
               output: {
-                title: 'Tests queued',
-                summary: 'Tests are queued to run.'
+                title: title,
+                summary: summary,
               }
             });
             return response.data.id;
@@ -44,24 +47,11 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.ref }}
-      - name: Set checkrun status to in_progress
-        id: set_status
-        uses: actions/github-script@v7
-        with:
-          script: |
-            await github.rest.checks.update({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              check_run_id: ${{ needs.CreateCheckRun.outputs.checkrun_id }},
-              status: 'in_progress',
-              output: {
-                title: 'Tests in progress',
-                summary: 'Tests are currently running.'
-              }
-            });
       - name: Build and run tests
         run: |
           echo "Building and running tests for ref: ${{ github.event.ref }}"
+          # Wait for 10 seconds to simulate build time
+          sleep 10
           # Add your build and test commands here
           echo "Tests completed successfully."
 
