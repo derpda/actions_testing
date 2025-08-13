@@ -30,7 +30,7 @@ jobs:
               repo: context.repo.repo,
               name: 'Build and Test or Skip',
               head_sha: '${{ github.event.inputs.sha }}',
-              status: 'in_progress',
+              status: 'queued',
               output: {
                 title: title,
                 summary: summary,
