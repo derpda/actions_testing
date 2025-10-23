@@ -18,12 +18,7 @@ jobs:
         run: |
           cat <<EOF > comment.txt
           このプルリクエストにコメントを投稿するによって実行できるコマンドがあります。
-          - 「/tests」: テストを実行します。
-          - 「/skip_tests」: テストをスキップします。
           - 「/merge」: プルリクエストをマージします (FastForwardマージ)。
-
-          > [!IMPORTANT]
-          > 「/tests」か「/skip_tests」のいずれかを実行する必要があります。
           EOF
           gh pr \
             comment ${{ github.event.pull_request.number }} \
