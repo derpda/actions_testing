@@ -7,43 +7,45 @@ concurrency:
   group: pr-comment-reactions
   cancel-in-progress: false
 jobs:
-  RunOrSkipTests:
-    if: ${{ github.event.issue.pull_request && (github.event.comment.body == '/run_tests' || github.event.comment.body == '/skip_tests') }}
-    runs-on: ubuntu-latest
-    env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    steps:
-      - uses: xt0rted/pull-request-comment-branch@v3
-        id: get_refs
-      - name: Ensure base is dev
-        run: |
-          echo "${{ steps.get_refs.outputs.base_ref }}"
-          if [[ "${{ steps.get_refs.outputs.base_ref }}" != "dev" ]]; then
-            echo "This PR must target the dev branch to run tests."
-            exit 1
-          fi
-      - name: Label the PR
-        run: |
-          gh workflow run pr_dev_tests.yml \
-            --repo ${{ github.repository }} \
-            --ref ${{ steps.get_refs.outputs.head_ref }} \
-            --field skip=${{ github.event.comment.body == '/skip_tests' }}
-
-  FastForwardMerge:
-    # Only run if the comment contains the /merge command.
+  FFMerge:
     if: ${{ github.event.issue.pull_request && github.event.comment.body == '/merge' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      pull-requests: write
-      issues: write
+      actions: write
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
-      - name: Fast forwarding merging the PR
-        uses: sequoia-pgp/fast-forward@v1
+      - name: Get PR details
+        id: pr_details
+        run: |
+          PR_NUMBER=${{ github.event.issue.number }}
+          echo "PR_NUMBER=$PR_NUMBER" >> $GITHUB_OUTPUT
+          FROM_REF=$(gh pr view $PR_NUMBER --repo ${{ github.repository }} --json headRefName --jq .headRefName)
+          echo "FROM_REF=$FROM_REF" >> $GITHUB_OUTPUT
+          INTO_REF=$(gh pr view $PR_NUMBER --repo ${{ github.repository }} --json baseRefName --jq .baseRefName)
+          echo "INTO_REF=$INTO_REF" >> $GITHUB_OUTPUT
+      - uses: actions/checkout@v4
         with:
-          merge: true
-          # To reduce the workflow's verbosity, use 'on-error'
-          # to only post a comment when an error occurs, or 'never' to
-          # never post a comment.  (In all cases the information is
-          # still available in the step's summary.)
-          comment: always
+          ref: ${{ steps.pr_details.outputs.INTO_REF }}
+      - name: Fast-Forward Merge PR
+        id: ff_merge
+        run: |
+          git merge --ff-only origin/${{ steps.pr_details.outputs.FROM_REF }}
+          git push origin HEAD:${{ steps.pr_details.outputs.INTO_REF }}
+      - name: Post comment if ff merge fails
+        if: ${{ failure() }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr comment ${{ github.event.issue.number }} \
+            --repo ${{ github.repository }} \
+            --body "Fast-Forward merge failed. Please resolve any conflicts or issues manually."
+      - name: Manually trigger GitHub Action for PR after merge into dev
+        if: ${{ success() && steps.pr_details.outputs.INTO_REF == 'dev' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh workflow run pr_dev_tests.yml \
+            --repo ${{ github.repository }} \
+            --ref ${{ steps.pr_details.outputs.INTO_REF }}
