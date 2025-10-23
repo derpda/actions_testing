@@ -12,6 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      pull-requests: write
       actions: write
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -31,7 +32,7 @@ jobs:
       - name: Fast-Forward Merge PR
         id: ff_merge
         run: |
-          git merge --ff-only origin/${{ steps.pr_details.outputs.FROM_REF }}
+          git merge --ff-only ${{ steps.pr_details.outputs.FROM_REF }}
           git push origin HEAD:${{ steps.pr_details.outputs.INTO_REF }}
       - name: Post comment if ff merge fails
         if: ${{ failure() }}
