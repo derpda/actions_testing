@@ -18,9 +18,9 @@ jobs:
         run: |
           echo "Creating random file" > random-file.txt
       - name: Run foo
-        uses: docker://alpine:latest
+        uses: docker://ubuntu:latest
         with:
-          args: ./scripts/test_script.sh random-file.txt
+          args: ./scripts/test_script.sh
       - name: Check output content
         run: |
           cat output.txt

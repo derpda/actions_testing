@@ -3,6 +3,6 @@
 echo "Hello, World!"
 
 echo "File content:"
-cat $1
+cat random-file.txt
 
 echo "Create file" > output.txt
