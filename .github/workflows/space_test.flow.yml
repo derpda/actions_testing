@@ -20,7 +20,7 @@ jobs:
       - name: Run foo
         uses: docker://alpine:latest
         with:
-          args: scripts/test_script.sh random-file.txt
+          args: ./scripts/test_script.sh random-file.txt
       - name: Check output content
         run: |
           cat output.txt
