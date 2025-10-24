@@ -1,0 +1,26 @@
+on:
+  workflow_dispatch:
+
+jobs:
+  SpaceAndDocker:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check disk space 1
+        run: |
+          du -h -d 1 /
+      - name: Delete huge unnecessary tools folder
+        run: rm -rf /opt/hostedtoolcache
+      - uses: actions/checkout@v3
+      - name: Check disk space 2
+        run: |
+          du -h -d 1 /
+      - name: Create random file
+        run: |
+          echo "Creating random file" > random-file.txt
+      - name: Run foo
+        uses: docker://alpine:latest
+        with:
+          args: scripts/test_script.sh random-file.txt
+      - name: Check output content
+        run: |
+          cat output.txt
