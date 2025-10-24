@@ -18,9 +18,11 @@ jobs:
         run: |
           echo "Creating random file" > random-file.txt
       - name: Run foo
+        id: run_foo
         uses: docker://ubuntu:latest
         with:
-          args: ./scripts/test_script.sh && ls -la
+          args: ./scripts/test_script.sh
       - name: Check output content
         run: |
           cat output.txt
+          echo ${{ steps.run_foo.outputs.FLUTTER_TAR_PATH }}
