@@ -10,7 +10,7 @@ jobs:
       #     df -h
       # - name: Delete huge unnecessary tools folder
       #   run: rm -rf /opt/hostedtoolcache
-      # - uses: actions/checkout@v3
+      - uses: actions/checkout@v3
       # - name: Check disk space 2
       #   run: |
       #     df -h
