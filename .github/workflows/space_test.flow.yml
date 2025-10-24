@@ -7,13 +7,13 @@ jobs:
     steps:
       - name: Check disk space 1
         run: |
-          du -h -d 1 /
+          df -h
       - name: Delete huge unnecessary tools folder
         run: rm -rf /opt/hostedtoolcache
       - uses: actions/checkout@v3
       - name: Check disk space 2
         run: |
-          du -h -d 1 /
+          df -h
       - name: Create random file
         run: |
           echo "Creating random file" > random-file.txt
