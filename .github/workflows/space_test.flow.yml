@@ -17,6 +17,7 @@ jobs:
       - name: Create random file
         run: |
           echo "Creating random file" > random-file.txt
+          ls -lh /
       - name: Run foo
         id: run_foo
         uses: docker://ubuntu:latest
