@@ -5,22 +5,22 @@ jobs:
   SpaceAndDocker:
     runs-on: ubuntu-latest
     steps:
-      - name: Check disk space 1
-        run: |
-          df -h
-      - name: Delete huge unnecessary tools folder
-        run: rm -rf /opt/hostedtoolcache
-      - uses: actions/checkout@v3
-      - name: Check disk space 2
-        run: |
-          df -h
+      # - name: Check disk space 1
+      #   run: |
+      #     df -h
+      # - name: Delete huge unnecessary tools folder
+      #   run: rm -rf /opt/hostedtoolcache
+      # - uses: actions/checkout@v3
+      # - name: Check disk space 2
+      #   run: |
+      #     df -h
       - name: Create random file
         run: |
           echo "Creating random file" > random-file.txt
       - name: Run foo
         uses: docker://ubuntu:latest
         with:
-          args: ./scripts/test_script.sh
+          args: ./scripts/test_script.sh && ls -la
       - name: Check output content
         run: |
           cat output.txt
