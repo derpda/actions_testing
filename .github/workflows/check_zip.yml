@@ -20,7 +20,7 @@ jobs:
       - name: Unzip and check contents
         run: |
           # Get name of zip
-          ZIP_FILE=$(ls ./downloaded)
+          ZIP_FILE=$(ls ./downloaded/*.zip)
           echo "Unzipping file: $ZIP_FILE"
           unzip ./downloaded/$ZIP_FILE -d ./unzipped
           echo "Contents of unzipped directory:"
