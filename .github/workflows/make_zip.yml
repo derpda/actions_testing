@@ -1,0 +1,18 @@
+name: "Make a test zip file"
+on:
+  workflow_call:
+
+jobs:
+  MakeZip:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Make zip with random content
+        run: |
+          mkdir test_dir
+          echo "This is a test file." > test_dir/test_file.txt
+          zip -r test_zip_file.zip test_dir/test_file.txt
+      - name: Upload zip as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: test_zip
+          path: test_zip_file.zip
