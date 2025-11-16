@@ -22,7 +22,7 @@ jobs:
           # Get name of zip
           ZIP_FILE=$(ls ./downloaded/*.zip)
           echo "Unzipping file: $ZIP_FILE"
-          unzip ./downloaded/$ZIP_FILE -d ./unzipped
+          unzip $ZIP_FILE -d ./unzipped
           echo "Contents of unzipped directory:"
           ls -R ./unzipped
           echo "Checking for test_file.txt..."
