@@ -13,4 +13,5 @@ jobs:
       - name: Make zip with random content
         shell: bash
         run: |
+          source ./scripts/dependencies.sh
           ./scripts/test_script.sh .
