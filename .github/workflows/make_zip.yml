@@ -10,6 +10,13 @@ jobs:
     container:
       image: nefrock/edge_ocr_sdk:0.18
     steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: false
+      - name: Make zip with random content
+        shell: bash
+        run: |
+          ./scripts/test_script.sh .
       - name: Make zip with random content
         shell: bash
         run: |
