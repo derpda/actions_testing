@@ -22,6 +22,7 @@ jobs:
       - name: List contents of downloaded directory
         run: ls -R ${{ env.TOOLS_DIR }}
       - name: Unzip and check contents
+        working-directory: ${{ env.TOOLS_DIR }}
         run: |
           # Get name of zip
           ZIP_FILE=$(ls ${{ env.TOOLS_DIR }}/*.zip)
