@@ -1,8 +1,6 @@
 name: "Make a test zip file"
 on:
-  push:
-    branches:
-      - dev
+  workflow_call:
 
 jobs:
   MakeZip:
