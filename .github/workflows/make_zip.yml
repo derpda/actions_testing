@@ -7,18 +7,14 @@ on:
 jobs:
   MakeZip:
     runs-on: ubuntu-latest
-    container:
-      image: nefrock/edge_ocr_sdk:0.18
     steps:
-      - uses: actions/checkout@v4
+      - name: Make zip with random content
+        run: |
+          mkdir test_dir
+          echo "This is a test file." > test_dir/test_file.txt
+          zip -r test_zip_file.zip test_dir/test_file.txt
+      - name: Upload zip as artifact
+        uses: actions/upload-artifact@v4
         with:
-          submodules: false
-      - name: Make zip with random content
-        shell: bash
-        run: |
-          source ./scripts/dependencies.sh
-          ./scripts/test_script.sh .
-      - name: Make zip with random content
-        shell: bash
-        run: |
-          ./scripts/test_script.sh .
+          name: test_zip
+          path: test_zip_file.zip

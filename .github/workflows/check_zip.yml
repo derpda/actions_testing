@@ -1,0 +1,34 @@
+on:
+  workflow_dispatch:
+
+jobs:
+  MakeZip:
+    uses: ./.github/workflows/make_zip.yml
+    secrets: inherit
+
+  CheckZip:
+    needs: MakeZip
+    runs-on: ubuntu-slim
+    steps:
+      - name: Download zip artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: test_zip
+          path: ./downloaded
+      - name: List contents of downloaded directory
+        run: ls -R ./downloaded
+      - name: Unzip and check contents
+        run: |
+          # Get name of zip
+          ZIP_FILE=$(ls ./downloaded/*.zip)
+          echo "Unzipping file: $ZIP_FILE"
+          unzip $ZIP_FILE -d ./unzipped
+          echo "Contents of unzipped directory:"
+          ls -R ./unzipped
+          echo "Checking for test_file.txt..."
+          if [ -f ./unzipped/test_dir/test_file.txt ]; then
+            echo "test_file.txt found!"
+          else
+            echo "test_file.txt NOT found!"
+            exit 1
+          fi
