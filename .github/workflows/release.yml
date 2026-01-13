@@ -1,0 +1,25 @@
+name: "Release: Build and upload SDKs"
+on:
+  release:
+    types: [published]
+
+jobs:
+  Validate-Release:
+    runs-on: ubuntu-latest
+    outputs:
+      VERSION: ${{ steps.validate_release.outputs.VERSION }}
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+      - name: Save release notes to file
+        run: |
+          echo "${{ github.event.release.body }}" > release_notes.txt
+          echo "release_notes=release_notes.txt" >> "$GITHUB_ENV"
+      - name: Validate release notes
+        id: validate_release
+        run: |
+          VERSION=$(echo "${{ github.event.release.tag_name }}" | sed 's/^v//')
+          echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
+          python ./scripts/validate_release_notes.py \
+            --release_type sdk \
+            --release_notes $release_notes
