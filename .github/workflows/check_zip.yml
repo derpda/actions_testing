@@ -25,15 +25,5 @@ jobs:
         working-directory: ${{ env.TOOLS_DIR }}
         run: |
           # Get name of zip
-          ZIP_FILE=$(ls ${{ env.TOOLS_DIR }}/*.zip)
-          echo "Unzipping file: $ZIP_FILE"
-          unzip $ZIP_FILE -d ./unzipped
-          echo "Contents of unzipped directory:"
-          ls -R ./unzipped
-          echo "Checking for test_file.txt..."
-          if [ -f ./unzipped/test_dir/test_file.txt ]; then
-            echo "test_file.txt found!"
-          else
-            echo "test_file.txt NOT found!"
-            exit 1
-          fi
+          ls test_file.md
+          cat test_file.md

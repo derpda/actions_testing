@@ -8,11 +8,9 @@ jobs:
     steps:
       - name: Make zip with random content
         run: |
-          mkdir test_dir
-          echo "This is a test file." > test_dir/test_file.txt
-          zip -r test_zip_file.zip test_dir/test_file.txt
+          echo "This is a test file." > test_file.md
       - name: Upload zip as artifact
         uses: actions/upload-artifact@v4
         with:
           name: test_zip
-          path: test_zip_file.zip
+          path: test_file.md
